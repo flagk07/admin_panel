@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>Добавить украшение</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <style>
+    body {
+      font-family: sans-serif;
+      max-width: 500px;
+      margin: 40px auto;
+      padding: 20px;
+      border-radius: 12px;
+      background-color: #f9f9f9;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    input, button {
+      display: block;
+      margin: 10px 0;
+      width: 100%;
+      padding: 10px;
+      font-size: 16px;
+    }
+    button {
+      background-color: #0070f3;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #005bd1;
+    }
+  </style>
+</head>
+<body>
+  <h2>Добавить украшение</h2>
+  <form id="productForm">
+    <input type="text" id="title" placeholder="Название" required />
+    <input type="text" id="description" placeholder="Описание" required />
+    <input type="number" id="price" placeholder="Цена (₽)" required />
+    <input type="text" id="category" placeholder="Категория (Кольца, Серьги...)" required />
+    <input type="file" id="image" accept="image/*" required />
+    <button type="submit">Добавить</button>
+  </form>
+
+  <p id="status" style="color: green;"></p>
+
+  <script>
+    // 🔧 ВСТАВЬ СВОИ ДАННЫЕ ОТ SUPABASE
+    const SUPABASE_URL = 'https://YOUR_PROJECT.supabase.co';
+    const SUPABASE_KEY = 'YOUR_PUBLIC_ANON_KEY';
+
+    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    const form = document.getElementById('productForm');
+    const status = document.getElementById('status');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      status.textContent = 'Загрузка...';
+
+      const title = document.getElementById('title').value;
+      const description = document.getElementById('description').value;
+      const price = parseFloat(document.getElementById('price').value);
+      const category = document.getElementById('category').value;
+      const imageFile = document.getElementById('image').files[0];
+
+      if (!imageFile) {
+        status.textContent = 'Выберите изображение.';
+        return;
+      }
+
+      const fileName = Date.now() + '-' + imageFile.name;
+
+      // 1. Загрузка фото
+      const { data: imageData, error: imageError } = await supabase
+        .storage
+        .from('products')
+        .upload(fileName, imageFile);
+
+      if (imageError) {
+        status.textContent = 'Ошибка загрузки изображения: ' + imageError.message;
+        return;
+      }
+
+      const imageUrl = `${SUPABASE_URL}/storage/v1/object/public/products/${fileName}`;
+
+      // 2. Добавление записи в таблицу
+      const { error: insertError } = await supabase
+        .from('products')
+        .insert([{
+          title,
+          description,
+          price,
+          category,
+          image_url: imageUrl,
+          available: true
+        }]);
+
+      if (insertError) {
+        status.textContent = 'Ошибка добавления товара: ' + insertError.message;
+      } else {
+        status.textContent = 'Товар успешно добавлен!';
+        form.reset();
+      }
+    });
+  </script>
+</body>
+</html>
