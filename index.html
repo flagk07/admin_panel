@@ -3,7 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <title>Добавить украшение</title>
+
+  <!-- Сначала подключаем библиотеку Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+
   <style>
     body {
       font-family: sans-serif;
@@ -46,8 +49,8 @@
 
   <p id="status" style="color: green;"></p>
 
+  <!-- ПОСЛЕ SDK: твой JS-код -->
   <script>
-    // ВСТАВЬ СВОИ ДАННЫЕ ОТ SUPABASE
     const SUPABASE_URL = 'https://hsrqdpwzgcugnansawpl.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhzcnFkcHd6Z2N1Z25hbnNhd3BsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkyNzgzNDMsImV4cCI6MjA2NDg1NDM0M30.8VhS4S3pYydvj3XDxKXp4AnkS3b90X0qkp9cwn4p3-8';
 
@@ -73,7 +76,7 @@
 
       const fileName = Date.now() + '-' + imageFile.name;
 
-      // 1. Загрузка изображения
+      // Загрузка изображения
       const { data: imageData, error: imageError } = await supabase
         .storage
         .from('products')
@@ -87,7 +90,7 @@
 
       const imageUrl = `${SUPABASE_URL}/storage/v1/object/public/products/${fileName}`;
 
-      // 2. Вставка записи в таблицу
+      // Вставка товара
       const { error: insertError } = await supabase
         .from('products')
         .insert([{
