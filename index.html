@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <title>Добавить украшение</title>
 
-  <!-- Подключаем Supabase SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 
   <style>
@@ -44,6 +43,7 @@
     <input type="number" id="size" placeholder="Размер" required />
     <input type="text" id="material" placeholder="Материал" required />
     <input type="text" id="piece" placeholder="Вставка" required />
+    <input type="text" id="description" placeholder="Описание" required />
     <input type="number" id="price" placeholder="Цена (₽)" required />
     <input type="text" id="category" placeholder="Категория (Кольца, Серьги...)" required />
     <input type="file" id="image" accept="image/*" required />
@@ -54,7 +54,7 @@
 
   <script>
     const SUPABASE_URL = 'https://hsrqdpwzgcugnansawpl.supabase.co';
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhzcnFkcHd6Z2N1Z25hbnNhd3BsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkyNzgzNDMsImV4cCI6MjA2NDg1NDM0M30.8VhS4S3pYydvj3XDxKXp4AnkS3b90X0qkp9cwn4p3-8';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'; // 🔒 замените на актуальный ключ
 
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -66,6 +66,10 @@
       status.textContent = 'Загрузка...';
 
       const title = document.getElementById('title').value;
+      const tryValue = parseFloat(document.getElementById('try').value);
+      const size = parseFloat(document.getElementById('size').value);
+      const material = document.getElementById('material').value;
+      const piece = document.getElementById('piece').value;
       const description = document.getElementById('description').value;
       const price = parseFloat(document.getElementById('price').value);
       const category = document.getElementById('category').value;
@@ -76,16 +80,12 @@
         return;
       }
 
-      // ✅ Очистка имени файла от недопустимых символов
-      const cleanFileName = imageFile.name
-        .toLowerCase()
-        .replace(/[^a-z0-9.\-_]/g, '_'); // заменяем русские буквы, пробелы, спецсимволы
+      const cleanFileName = imageFile.name.toLowerCase().replace(/[^a-z0-9.\-_]/g, '_');
       const fileName = Date.now() + '-' + cleanFileName;
 
-      // 1. Загрузка изображения
       const { data: imageData, error: imageError } = await supabase
         .storage
-        .from('products') // название bucket-а
+        .from('products')
         .upload(fileName, imageFile);
 
       if (imageError) {
@@ -96,11 +96,14 @@
 
       const imageUrl = `${SUPABASE_URL}/storage/v1/object/public/products/${fileName}`;
 
-      // 2. Вставка товара в таблицу
       const { error: insertError } = await supabase
         .from('products')
         .insert([{
           title,
+          try: tryValue,
+          size,
+          material,
+          piece,
           description,
           price,
           category,
