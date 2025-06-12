@@ -13,28 +13,35 @@
       background-color: #f9f9f9;
       color: #333;
     }
+
     h2 {
       margin-bottom: 20px;
     }
+
     .summary {
       background: #f0f0f0;
       padding: 20px;
       border-radius: 10px;
     }
+
     .summary ul {
       list-style: none;
       padding: 0;
     }
+
     .summary li {
       padding: 10px 0;
       border-bottom: 1px solid #ccc;
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap: 12px;
     }
+
     .item-info {
       flex: 1;
     }
+
     .availability-btn {
       width: 130px;
       min-height: 36px;
@@ -45,11 +52,14 @@
       border-radius: 6px;
       cursor: pointer;
       transition: background 0.3s ease;
+      flex-shrink: 0;
     }
+
     .available {
       background-color: #0070f3;
       color: white;
     }
+
     .not-available {
       background-color: #aaa;
       color: white;
@@ -95,7 +105,8 @@
         button.className = `availability-btn ${p.available ? 'available' : 'not-available'}`;
         button.textContent = p.available ? '✅ В наличии' : '❌ Нет в наличии';
 
-        button.onclick = async () => {
+        button.onclick = async (e) => {
+          e.stopPropagation();
           const newStatus = !p.available;
           const { error: updateError } = await supabase
             .from('products')
@@ -105,7 +116,7 @@
           if (updateError) {
             alert('Ошибка обновления: ' + updateError.message);
           } else {
-            loadProductStats(); // перезагружаем после обновления
+            loadProductStats(); // обновляем список после изменения
           }
         };
 
