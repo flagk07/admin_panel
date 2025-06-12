@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>Список товаров</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.5/dist/umd/supabase.min.js"></script>
+  <style>
+    body {
+      font-family: sans-serif;
+      max-width: 700px;
+      margin: 40px auto;
+      padding: 20px;
+      background-color: #f9f9f9;
+      color: #333;
+    }
+    h2 {
+      margin-bottom: 20px;
+    }
+    .summary {
+      background: #f0f0f0;
+      padding: 20px;
+      border-radius: 10px;
+    }
+    .summary ul {
+      list-style: none;
+      padding: 0;
+    }
+    .summary li {
+      padding: 8px 0;
+      border-bottom: 1px solid #ccc;
+    }
+  </style>
+</head>
+<body>
+  <h2>📦 Загруженные товары</h2>
+  <div class="summary">
+    <p>Всего товаров: <strong id="productCount">...</strong></p>
+    <ul id="productList"></ul>
+  </div>
+
+  <script>
+    const supabase = window.supabase.createClient(
+      'https://hsrqdpwzgcugnansawpl.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhzcnFkcHd6Z2N1Z25hbnNhd3BsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkyNzgzNDMsImV4cCI6MjA2NDg1NDM0M30.8VhS4S3pYydvj3XDxKXp4AnkS3b90X0qkp9cwn4p3-8'
+    );
+
+    async function loadProductStats() {
+      const { data: products, error } = await supabase
+        .from('products')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Ошибка загрузки:', error);
+        return;
+      }
+
+      document.getElementById('productCount').textContent = products.length;
+      const list = document.getElementById('productList');
+      list.innerHTML = '';
+
+      products.forEach(p => {
+        const li = document.createElement('li');
+        li.textContent = `${p.title} — ${p.category}, ${p.price}₽, ${p.material || ''}, ${p.piece || ''}`;
+        list.appendChild(li);
+      });
+    }
+
+    loadProductStats();
+  </script>
+</body>
+</html>
