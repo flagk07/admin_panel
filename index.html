@@ -8,12 +8,41 @@
     body {
       font-family: sans-serif;
       max-width: 600px;
-      margin: 40px auto;
-      padding: 20px;
-      border-radius: 12px;
+      margin: 0 auto;
+      padding: 80px 20px 20px;
       background-color: #f9f9f9;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
+
+    .top-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: #ffffff;
+      border-bottom: 1px solid #ccc;
+      padding: 10px 20px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+      z-index: 999;
+    }
+
+    .top-bar button {
+      background-color: #444;
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 6px;
+      font-size: 15px;
+      cursor: pointer;
+    }
+
+    .top-bar button:hover {
+      background-color: #222;
+    }
+
+    h2 {
+      margin-top: 0;
+    }
+
     input, button {
       display: block;
       margin: 10px 0;
@@ -21,35 +50,33 @@
       padding: 10px;
       font-size: 16px;
     }
-    button {
+
+    button[type="submit"] {
       background-color: #0070f3;
       color: white;
       border: none;
       border-radius: 6px;
       cursor: pointer;
     }
-    button:hover {
+
+    button[type="submit"]:hover {
       background-color: #005bd1;
     }
-    .summary {
-      margin-top: 40px;
-      background: #f2f2f2;
-      padding: 20px;
-      border-radius: 10px;
-    }
-    .summary ul {
-      list-style: none;
-      padding: 0;
-    }
-    .summary li {
-      padding: 6px 0;
-      border-bottom: 1px solid #ccc;
-      font-size: 15px;
+
+    #status {
+      color: green;
     }
   </style>
 </head>
 <body>
+
+  <!-- 🔝 Закреплённая верхняя панель -->
+  <div class="top-bar">
+    <button onclick="location.href='products.html'">📋 Перейти к списку товаров</button>
+  </div>
+
   <h2>Добавить украшение</h2>
+
   <form id="productForm">
     <input type="text" id="title" placeholder="Название" required />
     <input type="number" id="try" placeholder="Проба" required />
@@ -63,17 +90,11 @@
     <button type="submit">Добавить</button>
   </form>
 
-  <p id="status" style="color: green;"></p>
-
-  <div class="summary">
-    <h3>📦 Всего товаров: <span id="productCount">...</span></h3>
-    <ul id="productList"></ul>
-  </div>
+  <p id="status"></p>
 
   <script>
     const SUPABASE_URL = 'https://hsrqdpwzgcugnansawpl.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhzcnFkcHd6Z2N1Z25hbnNhd3BsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkyNzgzNDMsImV4cCI6MjA2NDg1NDM0M30.8VhS4S3pYydvj3XDxKXp4AnkS3b90X0qkp9cwn4p3-8';
-
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     const form = document.getElementById('productForm');
@@ -133,37 +154,11 @@
         console.error('Ошибка вставки в таблицу:', insertError);
         status.textContent = 'Ошибка добавления товара: ' + insertError.message;
       } else {
+        console.log('Товар успешно добавлен');
         status.textContent = '✅ Товар успешно добавлен!';
         form.reset();
-        loadProductStats(); // обновить список после добавления
       }
     });
-
-    async function loadProductStats() {
-      const { data: products, error } = await supabase
-        .from('products')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Ошибка загрузки товаров:', error);
-        return;
-      }
-
-      document.getElementById('productCount').textContent = products.length;
-
-      const list = document.getElementById('productList');
-      list.innerHTML = ''; // очищаем список перед обновлением
-
-      products.forEach(p => {
-        const li = document.createElement('li');
-        li.textContent = `${p.title} — ${p.category}, ${p.price}₽, ${p.material || ''}, ${p.piece || ''}`;
-        list.appendChild(li);
-      });
-    }
-
-    // загружаем при открытии страницы
-    loadProductStats();
   </script>
 </body>
 </html>
