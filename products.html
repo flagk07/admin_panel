@@ -79,54 +79,69 @@
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhzcnFkcHd6Z2N1Z25hbnNhd3BsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkyNzgzNDMsImV4cCI6MjA2NDg1NDM0M30.8VhS4S3pYydvj3XDxKXp4AnkS3b90X0qkp9cwn4p3-8'
     );
 
-    async function loadProductStats() {
-      const { data: products, error } = await supabase
-        .from('products')
-        .select('*')
-        .order('created_at', { ascending: false });
+    <script>
+  const supabase = supabase.createClient(
+    'https://hsrqdpwzgcugnansawpl.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhzcnFkcHd6Z2N1Z25hbnNhd3BsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkyNzgzNDMsImV4cCI6MjA2NDg1NDM0M30.8VhS4S3pYydvj3XDxKXp4AnkS3b90X0qkp9cwn4p3-8'
+  );
 
-      if (error) {
-        console.error('Ошибка загрузки:', error);
-        return;
-      }
+  async function loadProductStats() {
+    const { data: products, error } = await supabase
+      .from('products')
+      .select('*')
+      .order('created_at', { ascending: false });
 
-      document.getElementById('productCount').textContent = products.length;
-      const list = document.getElementById('productList');
-      list.innerHTML = '';
-
-      products.forEach(p => {
-        const li = document.createElement('li');
-
-        const info = document.createElement('div');
-        info.className = 'item-info';
-        info.textContent = `${p.title} — ${p.category}, ${p.price}₽, ${p.material || ''}, ${p.piece || ''}`;
-
-        const button = document.createElement('button');
-        button.className = `availability-btn ${p.available ? 'available' : 'not-available'}`;
-        button.textContent = p.available ? '✅ В наличии' : '❌ Нет в наличии';
-
-        button.onclick = async (e) => {
-          e.stopPropagation();
-          const newStatus = !p.available;
-          const { error: updateError } = await supabase
-            .from('products')
-            .update({ available: newStatus })
-            .eq('id', p.id);
-
-          if (updateError) {
-            alert('Ошибка обновления: ' + updateError.message);
-          } else {
-            loadProductStats(); // обновляем список после изменения
-          }
-        };
-
-        li.appendChild(info);
-        li.appendChild(button);
-        list.appendChild(li);
-      });
+    if (error) {
+      console.error('Ошибка загрузки:', error);
+      return;
     }
 
-    loadProductStats();
-  </script>
+    document.getElementById('productCount').textContent = products.length;
+    const list = document.getElementById('productList');
+    list.innerHTML = '';
+
+    products.forEach(p => {
+      const li = document.createElement('li');
+      li.style.display = 'flex';
+      li.style.justifyContent = 'space-between';
+      li.style.alignItems = 'center';
+      li.style.gap = '12px';
+
+      const info = document.createElement('div');
+      info.className = 'item-info';
+      info.textContent = `${p.title} — ${p.category}, ${p.price}₽, ${p.material || ''}, ${p.piece || ''}`;
+
+      const button = document.createElement('button');
+      button.className = `availability-btn ${p.available ? 'available' : 'not-available'}`;
+      button.textContent = p.available ? '✅ В наличии' : '❌ Нет в наличии';
+
+      // 🔥 Важная часть: обработчик
+      button.addEventListener('click', async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const newStatus = !p.available;
+
+        const { error: updateError } = await supabase
+          .from('products')
+          .update({ available: newStatus })
+          .eq('id', p.id);
+
+        if (updateError) {
+          console.error('Ошибка при обновлении:', updateError);
+          alert('Не удалось обновить статус');
+        } else {
+          loadProductStats(); // перезагрузка списка
+        }
+      });
+
+      li.appendChild(info);
+      li.appendChild(button);
+      list.appendChild(li);
+    });
+  }
+
+  loadProductStats();
+</script>
 </body>
 </html>
