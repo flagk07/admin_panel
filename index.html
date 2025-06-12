@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <title>Добавить украшение</title>
 
-  <!-- Подключаем Supabase SDK ДО использования -->
+  <!-- Подключаем Supabase SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 
   <style>
@@ -53,7 +53,6 @@
     const SUPABASE_URL = 'https://hsrqdpwzgcugnansawpl.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhzcnFkcHd6Z2N1Z25hbnNhd3BsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkyNzgzNDMsImV4cCI6MjA2NDg1NDM0M30.8VhS4S3pYydvj3XDxKXp4AnkS3b90X0qkp9cwn4p3-8';
 
-    // 💡 ИСПРАВЛЕНИЕ ЗДЕСЬ
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     const form = document.getElementById('productForm');
@@ -74,12 +73,16 @@
         return;
       }
 
-      const fileName = Date.now() + '-' + imageFile.name;
+      // ✅ Очистка имени файла от недопустимых символов
+      const cleanFileName = imageFile.name
+        .toLowerCase()
+        .replace(/[^a-z0-9.\-_]/g, '_'); // заменяем русские буквы, пробелы, спецсимволы
+      const fileName = Date.now() + '-' + cleanFileName;
 
       // 1. Загрузка изображения
       const { data: imageData, error: imageError } = await supabase
         .storage
-        .from('products')
+        .from('products') // название bucket-а
         .upload(fileName, imageFile);
 
       if (imageError) {
@@ -90,7 +93,7 @@
 
       const imageUrl = `${SUPABASE_URL}/storage/v1/object/public/products/${fileName}`;
 
-      // 2. Вставка записи в таблицу
+      // 2. Вставка товара в таблицу
       const { error: insertError } = await supabase
         .from('products')
         .insert([{
