@@ -3,13 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <title>Добавить украшение</title>
-
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.5/dist/umd/supabase.min.js"></script>
   <style>
     body {
       font-family: sans-serif;
-      max-width: 500px;
+      max-width: 600px;
       margin: 40px auto;
       padding: 20px;
       border-radius: 12px;
@@ -33,6 +31,21 @@
     button:hover {
       background-color: #005bd1;
     }
+    .summary {
+      margin-top: 40px;
+      background: #f2f2f2;
+      padding: 20px;
+      border-radius: 10px;
+    }
+    .summary ul {
+      list-style: none;
+      padding: 0;
+    }
+    .summary li {
+      padding: 6px 0;
+      border-bottom: 1px solid #ccc;
+      font-size: 15px;
+    }
   </style>
 </head>
 <body>
@@ -52,9 +65,14 @@
 
   <p id="status" style="color: green;"></p>
 
+  <div class="summary">
+    <h3>📦 Всего товаров: <span id="productCount">...</span></h3>
+    <ul id="productList"></ul>
+  </div>
+
   <script>
     const SUPABASE_URL = 'https://hsrqdpwzgcugnansawpl.supabase.co';
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhzcnFkcHd6Z2N1Z25hbnNhd3BsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkyNzgzNDMsImV4cCI6MjA2NDg1NDM0M30.8VhS4S3pYydvj3XDxKXp4AnkS3b90X0qkp9cwn4p3-8'; // 🔒 замените на актуальный ключ
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhzcnFkcHd6Z2N1Z25hbnNhd3BsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkyNzgzNDMsImV4cCI6MjA2NDg1NDM0M30.8VhS4S3pYydvj3XDxKXp4AnkS3b90X0qkp9cwn4p3-8';
 
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -83,7 +101,7 @@
       const cleanFileName = imageFile.name.toLowerCase().replace(/[^a-z0-9.\-_]/g, '_');
       const fileName = Date.now() + '-' + cleanFileName;
 
-      const { data: imageData, error: imageError } = await supabase
+      const { error: imageError } = await supabase
         .storage
         .from('products')
         .upload(fileName, imageFile);
@@ -115,11 +133,37 @@
         console.error('Ошибка вставки в таблицу:', insertError);
         status.textContent = 'Ошибка добавления товара: ' + insertError.message;
       } else {
-        console.log('Товар успешно добавлен');
-        status.textContent = 'Товар успешно добавлен!';
+        status.textContent = '✅ Товар успешно добавлен!';
         form.reset();
+        loadProductStats(); // обновить список после добавления
       }
     });
+
+    async function loadProductStats() {
+      const { data: products, error } = await supabase
+        .from('products')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Ошибка загрузки товаров:', error);
+        return;
+      }
+
+      document.getElementById('productCount').textContent = products.length;
+
+      const list = document.getElementById('productList');
+      list.innerHTML = ''; // очищаем список перед обновлением
+
+      products.forEach(p => {
+        const li = document.createElement('li');
+        li.textContent = `${p.title} — ${p.category}, ${p.price}₽, ${p.material || ''}, ${p.piece || ''}`;
+        list.appendChild(li);
+      });
+    }
+
+    // загружаем при открытии страницы
+    loadProductStats();
   </script>
 </body>
 </html>
